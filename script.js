@@ -1,3 +1,5 @@
+// Constante referente a lista ordenada e se repete ao longo do código
+const listaOrdenada = document.querySelector('#lista-tarefas');
 
 const listaTarefas = {
   // Evento que vê se tarefa está como finalizada ou não e troca a classe
@@ -30,7 +32,6 @@ const listaTarefas = {
   // Evento de criar tarefa
   escreverTarefa() {
     const inputTarefa = document.querySelector('#texto-tarefa');
-    const listaOrdenada = document.querySelector('#lista-tarefas');
     const itemTarefa = document.createElement('li');
     itemTarefa.className = 'item';
     itemTarefa.innerText = inputTarefa.value;
@@ -46,10 +47,33 @@ const listaTarefas = {
   },
 };
 
+const eventosBotoes = {
+  // Evento que remove todos os itens da lista
+  removerTodosItens() {
+    listaOrdenada.innerHTML = '';
+  },
+
+  // Evento que remove todos os itens da lista que foram finalizados
+  removerItensFinalizados() {
+    const finalizados = document.querySelectorAll('.completed');
+    for (let i = 0; i < finalizados.length; i += 1) {
+      listaOrdenada.removeChild(finalizados[i]);
+    }
+  },
+};
+
 function iniciarDom() {
   // Inicia evento de criar novas tarefas
   const criarTarefa = document.querySelector('#criar-tarefa');
   criarTarefa.addEventListener('click', listaTarefas.escreverTarefa);
+
+  // Inicia evento de apagar todos os itens da lista tarefas
+  const botaoRemove = document.querySelector('#apaga-tudo');
+  botaoRemove.addEventListener('click', eventosBotoes.removerTodosItens);
+
+  // Inicia evento de apagar todos os itens da lista tarefas que foram finalizados
+  const botaoRemoveFinalizados = document.querySelector('#remover-finalizados');
+  botaoRemoveFinalizados.addEventListener('click', eventosBotoes.removerItensFinalizados);
 }
 
 // Programa inicia por aqui
