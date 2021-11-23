@@ -1,6 +1,10 @@
 // Constante referente a lista ordenada e se repete ao longo do código
 const listaOrdenada = document.querySelector('#lista-tarefas');
 
+// Array dos itens salvos
+let arraySalvos = [];
+let arrayClasseSalvos = [];
+
 const listaTarefas = {
   // Evento que vê se tarefa está como finalizada ou não e troca a classe
   finalizarTarefa(event) {
@@ -26,7 +30,7 @@ const listaTarefas = {
   colorirItem(event) {
     listaTarefas.descolorirItens();
     const item = event.target;
-    item.style.backgroundColor = 'rgb(128, 128, 128)'
+    item.style.backgroundColor = 'rgb(128, 128, 128)';
   },
   
   // Evento de criar tarefa
@@ -47,7 +51,7 @@ const listaTarefas = {
   },
 };
 
-const eventosBotoes = {
+const eventosRemover = {
   // Evento que remove todos os itens da lista
   removerTodosItens() {
     listaOrdenada.innerHTML = '';
@@ -57,23 +61,131 @@ const eventosBotoes = {
   removerItensFinalizados() {
     const finalizados = document.querySelectorAll('.completed');
     for (let i = 0; i < finalizados.length; i += 1) {
+      // src: https://developer.mozilla.org/pt-BR/docs/Web/API/Node/removeChild
       listaOrdenada.removeChild(finalizados[i]);
+    }
+  },
+
+  // Evento que remove item selecionado
+  removeItemSelecionado() {
+    const todosOsitens = document.querySelectorAll('.item');
+
+    for (let i = 0; i < todosOsitens.length; i += 1) {
+      if (todosOsitens[i].style.backgroundColor === 'rgb(128, 128, 128)') {
+        // src: https://developer.mozilla.org/pt-BR/docs/Web/API/Node/removeChild
+        listaOrdenada.removeChild(todosOsitens[i]);
+      }
     }
   },
 };
 
+const moverItens = {
+  // Mover item para cima
+  paraCima() {
+    const todosOsItens = document.querySelectorAll('.item');
+
+    for (let i = 0; i < todosOsItens.length; i += 1) {
+      if (todosOsItens[i].style.backgroundColor === 'rgb(128, 128, 128)') {
+        if (i !== 0) {
+          // src: https://www.ti-enxame.com/pt/javascript/como-trocar-nos-filhos-do-dom-em-javascript/941877916/
+          listaOrdenada.insertBefore(todosOsItens[i], todosOsItens[i - 1]);
+        }
+      }
+    }
+  },
+
+  // Mover item para baixo
+  paraBaixo() {
+    const todosOsItens = document.querySelectorAll('.item');
+
+    for (let i = 0; i < todosOsItens.length; i += 1) {
+      if (todosOsItens[i].style.backgroundColor === 'rgb(128, 128, 128)') {
+        if (i !== todosOsItens.length - 1) {
+          // src: https://www.ti-enxame.com/pt/javascript/como-trocar-nos-filhos-do-dom-em-javascript/941877916/
+          listaOrdenada.insertBefore(todosOsItens[i + 1], todosOsItens[i]);
+        }
+      }
+    }
+  },
+};
+
+const itensSalvos = {
+  retirarStorage() {
+    arraySalvos = [];
+    arrayClasseSalvos = [];
+
+    arraySalvos = JSON.parse(localStorage.getItem("valor"));
+    arrayClasseSalvos = JSON.parse(localStorage.getItem("classe"));
+  },
+
+  iniciarComStorage() {
+    itensSalvos.retirarStorage();
+
+    for (let i = 0; i < arraySalvos.length; i += 1) {
+      const itemTarefa = document.createElement('li');
+      itemTarefa.className = arrayClasseSalvos[i];
+      itemTarefa.innerText = arraySalvos[i];
+      
+      // Função para colorir ao clicar no item
+      itemTarefa.addEventListener('click', listaTarefas.colorirItem);
+
+      // Função para selecionar ao clicar duas vezes no itemTarefa
+      itemTarefa.addEventListener('dblclick', listaTarefas.finalizarTarefa);
+
+      listaOrdenada.appendChild(itemTarefa);
+    }
+  },
+  
+  colocarStorage() {
+    let itens = document.querySelectorAll('.item');
+    arraySalvos = [];
+    arrayClasseSalvos = [];
+    localStorage.clear();
+
+    for (let i = 0; i < itens.length; i += 1) {
+      arraySalvos.push(itens[i].innerText);
+      arrayClasseSalvos.push(itens[i].className);
+    }
+
+    // src: https://pt.stackoverflow.com/questions/329223/armazenar-um-array-de-objetos-em-um-local-storage-com-js
+    localStorage.setItem('valor', JSON.stringify(arraySalvos));
+    localStorage.setItem('classe', JSON.stringify(arrayClasseSalvos));
+  },
+};
+
 function iniciarDom() {
+  if (localStorage.length >= 1) {
+    // Inicia site com itens do localStorage
+    itensSalvos.iniciarComStorage();
+  }
+
   // Inicia evento de criar novas tarefas
   const criarTarefa = document.querySelector('#criar-tarefa');
   criarTarefa.addEventListener('click', listaTarefas.escreverTarefa);
 
   // Inicia evento de apagar todos os itens da lista tarefas
-  const botaoRemove = document.querySelector('#apaga-tudo');
-  botaoRemove.addEventListener('click', eventosBotoes.removerTodosItens);
+  const btnRmv = document.querySelector('#apaga-tudo');
+  btnRmv.addEventListener('click', eventosRemover.removerTodosItens);
 
   // Inicia evento de apagar todos os itens da lista tarefas que foram finalizados
-  const botaoRemoveFinalizados = document.querySelector('#remover-finalizados');
-  botaoRemoveFinalizados.addEventListener('click', eventosBotoes.removerItensFinalizados);
+  const btnRmvFinalizados = document.querySelector('#remover-finalizados');
+  btnRmvFinalizados.addEventListener('click', eventosRemover.removerItensFinalizados);
+
+  // Inicia evento de apagar o item selecionado
+  const btnRmvSelecionado = document.querySelector('#remover-selecionado');
+  btnRmvSelecionado.addEventListener('click', eventosRemover.removeItemSelecionado);
+
+  // Inicia evento de mover item selecionado para cima
+  const btnMoveCima = document.querySelector('#mover-cima');
+  btnMoveCima.addEventListener('click', moverItens.paraCima);
+
+  // Inicia evento de mover item selecionado para baixo
+  const btnMoveBaixo = document.querySelector('#mover-baixo');
+  btnMoveBaixo.addEventListener('click', moverItens.paraBaixo);
+
+  // Inicia evento de salvar tarefas atuais no localStorage
+  const btnSalvarLista = document.querySelector('#salvar-tarefas');
+  btnSalvarLista.addEventListener('click', itensSalvos.colocarStorage);
 }
 
 // Programa inicia por aqui
